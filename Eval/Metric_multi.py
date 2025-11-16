@@ -57,7 +57,24 @@ def compute_metric_multi(path, ignore=[], type_ignore=[], type_only = "", prefix
 
         if not os.path.exists(file_path):
             continue
+        
+        # Check if the file is empty to avoid loading errors
+        if os.path.getsize(file_path) == 0:
+            print(f"Skipping empty file: {file_path}")
+            continue
+            
         data = pd.read_csv(file_path)
+        
+        # Check if the dataframe is empty after loading
+        if data.empty:
+            print(f"Skipping empty dataframe from file: {file_path}")
+            continue
+
+        log_path = os.path.join(path, folder, 'log.csv')
+        if not os.path.exists(log_path) or os.path.getsize(log_path) == 0:
+            print(f"Skipping due to missing or empty log file: {log_path}")
+            continue
+            
         log_data = pd.read_csv(log_path)
         if len(type_ignore) > 0:
             for t in type_ignore:
@@ -96,6 +113,14 @@ def compute_metric_multi(path, ignore=[], type_ignore=[], type_only = "", prefix
         
         all_datas.append(data)
     
+    # Check if all_datas is empty before concatenation
+    if not all_datas:
+        print("No valid data found to process. Exiting.")
+        # Return a default value or handle as an error
+        res = pd.DataFrame()
+        res.to_csv(os.path.join(path, 'metric.csv'), index=False)
+        return
+
     all_datas = pd.concat(all_datas)
     
     type_only = type_only.lower()
@@ -210,4 +235,3 @@ if __name__ == '__main__':
         for t in all_types:
             print('type:', t)
             compute_metric_multi(path, prefix=prefix, ignore=ignore, delay=7, num_threshold=num_threshold, type_only=t, compute_all=False)
-    

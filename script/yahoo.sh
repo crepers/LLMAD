@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Load environment variables from .env file
+set -o allexport
+source .env
+set +o allexport
+
 TRANS_BETA=0
 TRANS_ALPHA=95
 TEST_RATIO=0.5
@@ -8,7 +13,6 @@ RETRIEVE_POSITIVE_NUM=2
 RETRIEVE_NEGATIVE_NUM=1
 RETRIEVE_DATABASE_RATIO=1
 DELETE_ZERO=1
-MODEL_ENGINE="gpt-4o-2024-05-13"
 DATA_ROOT_DIR="data"
 SAVE_DIR="result"
 
@@ -22,7 +26,9 @@ for i in 0 1; do
     else
       PROMPT_MODE=4
     fi
-    RUN_NAME="Yahoo_50_prompt_${PROMPT_MODE}_win_${WINDOW_SIZE}_beta${TRANS_BETA}alpha${TRANS_ALPHA}_p2n1_rate10_crossp_gpt_o"
+    TIMESTAMP=$(date +%Y%m%d%H%M)
+    MODEL_SUFFIX=${MODEL_ENGINE%%-*}
+    RUN_NAME="Yahoo_50_prompt_${PROMPT_MODE}_win_${WINDOW_SIZE}_beta${TRANS_BETA}alpha${TRANS_ALPHA}_p2n1_rate10_crossp_${MODEL_SUFFIX}_${TIMESTAMP}"
     python run.py \
       --trans_beta $TRANS_BETA \
       --trans_alpha $TRANS_ALPHA \
@@ -37,8 +43,7 @@ for i in 0 1; do
       --retreive_data_path "${DATA_ROOT_DIR}/Yahoo" \
       --result_save_dir $SAVE_DIR \
       --sub_company $SUB_COMPANY \
-      --delete_zero $DELETE_ZERO \
-      --model_engine $MODEL_ENGINE
+      --delete_zero $DELETE_ZERO
   done
 done
 

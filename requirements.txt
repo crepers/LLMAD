@@ -1,0 +1,9 @@
+openai
+fastdtw
+pandas
+numpy
+scipy
+google-generativeai
+python-dotenv
+PyYAML
+matplotlib

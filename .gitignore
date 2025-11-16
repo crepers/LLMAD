@@ -1,6 +1,10 @@
+venv/
+.venv/
 result/
 __pycache__/
 *.bin
 *.pyc
+.env
 GPT_AD_exp/
 Interpretability/
+data/

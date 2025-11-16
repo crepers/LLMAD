@@ -1,3 +1,10 @@
+#!/bin/bash
+
+# Load environment variables from .env file
+set -o allexport
+source .env
+set +o allexport
+
 TRANS_BETA=0
 TRANS_ALPHA=95
 TEST_RATIO=0.05
@@ -6,11 +13,12 @@ RETRIEVE_POSITIVE_NUM=2
 RETRIEVE_NEGATIVE_NUM=1
 RETRIEVE_DATABASE_RATIO=0.1
 DELETE_ZERO=1
-MODEL_ENGINE="gpt-4o-2024-05-13"
 DATA_ROOT_DIR="data"
 SAVE_DIR="result"
+TIMESTAMP=$(date +%Y%m%d%H%M)
+MODEL_SUFFIX=${MODEL_ENGINE%%-*}
 
-RUN_NAME="KPI_5_prompt_${PROMPT_MODE}_win_${WINDOW_SIZE}_beta${TRANS_BETA}alpha${TRANS_ALPHA}_p${RETRIEVE_POSITIVE_NUM}n${RETRIEVE_NEGATIVE_NUM}_0514_gpt_o"
+RUN_NAME="KPI_5_prompt_${PROMPT_MODE}_win_${WINDOW_SIZE}_beta${TRANS_BETA}alpha${TRANS_ALPHA}_p${RETRIEVE_POSITIVE_NUM}n${RETRIEVE_NEGATIVE_NUM}_${MODEL_SUFFIX}_${TIMESTAMP}"
 for i in 0 1; do
     python run.py \
         --trans_beta $TRANS_BETA \
@@ -25,7 +33,6 @@ for i in 0 1; do
         --retreive_data_path "${DATA_ROOT_DIR}/AIOPS" \
         --sub_company 'all' \
         --delete_zero $DELETE_ZERO \
-        --model_engine $MODEL_ENGINE \
         --result_save_dir $SAVE_DIR
 done
 

@@ -12,4 +12,3 @@ python run.py \
     --retreive_data_path data/Yahoo \
     --sub_company 'real' \
     --delete_zero 1 \
-    --model_engine gpt-4o-2024-05-13 \
