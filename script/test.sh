@@ -1,4 +1,4 @@
-python run.py \
+python src/main.py \
     --trans_beta 0 \
     --trans_alpha 95 \
     --test_ratio 0.5 \

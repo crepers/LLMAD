@@ -29,7 +29,7 @@ for i in 0 1; do
     TIMESTAMP=$(date +%Y%m%d%H%M)
     MODEL_SUFFIX=${MODEL_ENGINE%%-*}
     RUN_NAME="Yahoo_50_prompt_${PROMPT_MODE}_win_${WINDOW_SIZE}_beta${TRANS_BETA}alpha${TRANS_ALPHA}_p2n1_rate10_crossp_${MODEL_SUFFIX}_${TIMESTAMP}"
-    python run.py \
+    python src/main.py \
       --trans_beta $TRANS_BETA \
       --trans_alpha $TRANS_ALPHA \
       --test_ratio $TEST_RATIO \

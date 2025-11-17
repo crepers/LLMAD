@@ -82,19 +82,18 @@ bash script/kpi.sh
 
 ## File Descriptions
 
-The project is structured with a clear separation of concerns to improve modularity and maintainability.
+The project is structured into a `src` directory for core logic and a `notebooks` directory for interactive analysis.
 
 | File / Folder                 | Description                                                                                              |
 |-------------------------------|----------------------------------------------------------------------------------------------------------|
-| `run.py`                      | The main entry point of the program. Orchestrates the data processing, retrieval, and LLM inference pipeline. |
-| `llm_handler.py`              | Handles all interactions with Large Language Models (e.g., OpenAI, Gemini), including API client setup and response parsing. |
-| `data_processor.py`           | Responsible for loading, preprocessing, and transforming the time series data before it's fed to the model. |
-| `retriever.py`                | Contains functions for retrieving similar time series examples from historical data using DTW.             |
-| `Prompt_template.py`          | Defines the structure of the prompts sent to the LLM.                                                    |
-| `script/`                     | Contains shell scripts (`yahoo.sh`, `wsd.sh`, `kpi.sh`) for running batch experiments on different datasets. |
+| `src/main.py`                 | The main entry point of the program. Orchestrates the data processing, retrieval, and LLM inference pipeline. |
+| `src/llm_handler.py`          | Handles all interactions with Large Language Models (e.g., OpenAI, Gemini).                              |
+| `src/data_processor.py`       | Responsible for loading, preprocessing, and transforming the time series data.                           |
+| `src/retriever.py`            | Contains functions for retrieving similar time series examples from historical data using DTW.             |
+| `src/prompt_template.py`      | Defines the structure of the prompts sent to the LLM.                                                    |
+| `notebooks/`                  | Contains Jupyter Notebooks for interactive experiments and visualization.                                |
+| `script/`                     | Contains shell scripts (`yahoo.sh`, `wsd.sh`, `kpi.sh`) for running batch experiments.                     |
 | `Eval/`                       | Includes Python scripts for computing evaluation metrics on the model's prediction results.              |
-| `run_wsd_interactive.ipynb`   | A Jupyter Notebook for running the WSD experiment step-by-step, allowing for interactive parameter tuning. |
-| `visualize_results.ipynb`     | A Jupyter Notebook to visualize the prediction results against the ground truth for easy performance analysis. |
 | `.env` / `.env.example`       | Files for managing environment variables, such as API keys and model configurations.                     |
 | `requirements.txt`            | Lists all the Python dependencies required for this project.                                             |
 

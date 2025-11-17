@@ -20,7 +20,7 @@ MODEL_SUFFIX=${MODEL_ENGINE%%-*} # Extracts 'gpt' from 'gpt-4o...' or 'gemini' f
 
 RUN_NAME="WSD_5_prompt_${PROMPT_MODE}_win_${WINDOW_SIZE}_beta${TRANS_BETA}alpha${TRANS_ALPHA}_p${RETRIEVE_POSITIVE_NUM}n${RETRIEVE_NEGATIVE_NUM}_${MODEL_SUFFIX}_${TIMESTAMP}"
 for i in 0 1; do
-    python run.py \
+    python src/main.py \
         --trans_beta $TRANS_BETA \
         --trans_alpha $TRANS_ALPHA \
         --test_ratio $TEST_RATIO \
