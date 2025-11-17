@@ -82,7 +82,7 @@ bash script/kpi.sh
 
 ## File Descriptions
 
-The project is structured into a `src` directory for core logic and a `notebooks` directory for interactive analysis.
+The project is structured into a `src` directory for core logic.
 
 | File / Folder                 | Description                                                                                              |
 |-------------------------------|----------------------------------------------------------------------------------------------------------|
@@ -91,7 +91,6 @@ The project is structured into a `src` directory for core logic and a `notebooks
 | `src/data_processor.py`       | Responsible for loading, preprocessing, and transforming the time series data.                           |
 | `src/retriever.py`            | Contains functions for retrieving similar time series examples from historical data using DTW.             |
 | `src/prompt_template.py`      | Defines the structure of the prompts sent to the LLM.                                                    |
-| `notebooks/`                  | Contains Jupyter Notebooks for interactive experiments and visualization.                                |
 | `script/`                     | Contains shell scripts (`yahoo.sh`, `wsd.sh`, `kpi.sh`) for running batch experiments.                     |
 | `Eval/`                       | Includes Python scripts for computing evaluation metrics on the model's prediction results.              |
 | `.env` / `.env.example`       | Files for managing environment variables, such as API keys and model configurations.                     |
