@@ -52,6 +52,10 @@ def parse_args():
     arg_parser.add_argument('--interpolate_zero', type=bool, default=False, required=False, help="Whether to interpolate zeros values.")
     arg_parser.add_argument('--no_affine_transform', action='store_true', help="Disable the affine transformation.")
     arg_parser.add_argument('--cost_analysis', type=bool, default=False, required=False, help="Whether to perform cost analysis.")
+    arg_parser.add_argument('--value_col', type=str, default="value", required=False, help="Name of the value column.")
+    arg_parser.add_argument('--label_col', type=str, default="label", required=False, help="Name of the label column.")
+    arg_parser.add_argument('--prompt_extra_cols', nargs='*', default=[], required=False, help="List of extra columns to include in the prompt.")
+    arg_parser.add_argument('--data_description', type=str, default="", required=False, help="Description of the data for the prompt.")
 
     return arg_parser.parse_args()
 
@@ -105,8 +109,16 @@ def run_inference_on_window(data_window, T_list, ad_list, ad_str_list, ad_label_
     anomaly_data_str = [ad_str_list[j] for j in ad_indices]
     cur_data_str = "\n".join([f"{j+1} {val}" for j, val in enumerate(data_window.value)])
     
+    if args.prompt_extra_cols:
+        # Include extra columns in the data string
+        cur_data_lines = []
+        for j, (idx, row) in enumerate(data_window.iterrows()):
+            extra_info = " ".join([f"{col}={row[col]}" for col in args.prompt_extra_cols if col in row])
+            cur_data_lines.append(f"{j+1} {row['value']} {extra_info}")
+        cur_data_str = "\n".join(cur_data_lines)
+
     # Get prompt and response
-    prompt_res = prompt_template.get_template(normal_data=normal_data_str, data=cur_data_str, data_len=len(data_window), anomaly_datas=anomaly_data_str)
+    prompt_res = prompt_template.get_template(normal_data=normal_data_str, data=cur_data_str, data_len=len(data_window), anomaly_datas=anomaly_data_str, data_description=args.data_description)
     
     start_time = time.time()
     print("      -> Calling LLM for anomaly detection...")

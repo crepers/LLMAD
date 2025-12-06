@@ -19,8 +19,23 @@ def load_and_preprocess_data(file_path, args):
     """
     Loads a single CSV file and applies all necessary preprocessing steps.
     """
-    all_datas = pd.read_csv(file_path)
+    if file_path.endswith('.parquet'):
+        all_datas = pd.read_parquet(file_path)
+    else:
+        all_datas = pd.read_csv(file_path)
     all_datas.fillna(0, inplace=True)
+
+    # Handle custom column names
+    value_col = getattr(args, 'value_col', 'value')
+    label_col = getattr(args, 'label_col', 'label')
+
+    if label_col not in all_datas.columns:
+        all_datas['label'] = 0
+    else:
+        all_datas.rename(columns={label_col: 'label'}, inplace=True)
+
+    if value_col != 'value':
+        all_datas.rename(columns={value_col: 'value'}, inplace=True)
 
     if args.delete_zero:
         all_datas = all_datas[all_datas['value'] != 0].reset_index(drop=True)
