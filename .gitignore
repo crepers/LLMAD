@@ -8,3 +8,5 @@ __pycache__/
 GPT_AD_exp/
 Interpretability/
 data/
+.DS_Store
+*.pdf
