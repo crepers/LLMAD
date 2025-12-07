@@ -58,6 +58,7 @@ def parse_args():
     arg_parser.add_argument('--data_description', type=str, default="", required=False, help="Description of the data for the prompt.")
     arg_parser.add_argument('--max_workers', type=int, default=5, required=False, help="Number of workers for parallel processing.")
     arg_parser.add_argument('--max_windows', type=int, default=0, required=False, help="Maximum number of windows to process. 0 means all.")
+    arg_parser.add_argument('--shuffle_windows', action='store_true', help="Whether to shuffle windows before processing.")
 
     return arg_parser.parse_args()
 
@@ -201,6 +202,11 @@ def process_file(file, run_dir, ad_list, ad_str_list, ad_label_list, args):
         data_window = infer_data[i : i + args.window_size]
         if not data_window.empty:
             windows.append(data_window)
+
+    # Shuffle windows if requested
+    if args.shuffle_windows:
+        print(" -> Shuffling windows...")
+        np.random.shuffle(windows)
 
     # Apply max_windows limit
     if args.max_windows > 0:

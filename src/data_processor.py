@@ -29,6 +29,11 @@ def load_and_preprocess_data(file_path, args):
     value_col = getattr(args, 'value_col', 'value')
     label_col = getattr(args, 'label_col', 'label')
 
+    # Auto-detect value column if default 'value' is not found but 'param1' exists
+    if value_col not in all_datas.columns and 'param1' in all_datas.columns:
+        print(f"Column '{value_col}' not found. Using 'param1' as value column.")
+        value_col = 'param1'
+
     if label_col not in all_datas.columns:
         all_datas['label'] = 0
     else:
