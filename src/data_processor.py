@@ -25,6 +25,22 @@ def load_and_preprocess_data(file_path, args):
         all_datas = pd.read_csv(file_path)
     all_datas.fillna(0, inplace=True)
 
+    # Filter by year if requested
+    if hasattr(args, 'year') and args.year > 0:
+        if 'Datetime' in all_datas.columns:
+            # Ensure Datetime is datetime type
+            if not pd.api.types.is_datetime64_any_dtype(all_datas['Datetime']):
+                try:
+                    all_datas['Datetime'] = pd.to_datetime(all_datas['Datetime'])
+                except Exception as e:
+                    print(f"Warning: Could not convert Datetime column: {e}")
+            
+            initial_len = len(all_datas)
+            all_datas = all_datas[all_datas['Datetime'].dt.year == args.year]
+            print(f"Filtered data by year {args.year}: {initial_len} -> {len(all_datas)} rows")
+        else:
+            print(f"Warning: --year {args.year} specified but 'Datetime' column not found.")
+
     # Handle custom column names
     value_col = getattr(args, 'value_col', 'value')
     label_col = getattr(args, 'label_col', 'label')

@@ -59,6 +59,7 @@ def parse_args():
     arg_parser.add_argument('--max_workers', type=int, default=5, required=False, help="Number of workers for parallel processing.")
     arg_parser.add_argument('--max_windows', type=int, default=0, required=False, help="Maximum number of windows to process. 0 means all.")
     arg_parser.add_argument('--shuffle_windows', action='store_true', help="Whether to shuffle windows before processing.")
+    arg_parser.add_argument('--year', type=int, default=0, required=False, help="Filter data by year (e.g., 2024). 0 means no filter.")
 
     return arg_parser.parse_args()
 
