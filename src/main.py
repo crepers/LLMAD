@@ -56,6 +56,7 @@ def parse_args():
     arg_parser.add_argument('--label_col', type=str, default="label", required=False, help="Name of the label column.")
     arg_parser.add_argument('--prompt_extra_cols', nargs='*', default=[], required=False, help="List of extra columns to include in the prompt.")
     arg_parser.add_argument('--data_description', type=str, default="", required=False, help="Description of the data for the prompt.")
+    arg_parser.add_argument('--max_workers', type=int, default=5, required=False, help="Number of workers for parallel processing.")
 
     return arg_parser.parse_args()
 
@@ -90,14 +91,10 @@ def prepare_retrieval_database(args):
     print(f'Total anomaly examples in database: {len(ad_list)}')
     return ad_list, ad_str_list, ad_label_list
 
-def run_inference_on_window(data_window, T_list, ad_list, ad_str_list, ad_label_list, prompt_template, base_dir, args):
+def run_inference_on_window(data_window, T_list, ad_list, ad_str_list, ad_label_list, prompt_template, args):
     """
-    Processes a single window of data: retrieves examples, calls LLM, and saves results.
+    Processes a single window of data: retrieves examples, calls LLM, and returns results.
     """
-    window_num = (data_window.iloc[0]['idx'] // (args.window_size // 2 if args.overlap else args.window_size)) + 1
-    num_windows = (len(data_window.index) + (args.window_size // 2 if args.overlap else args.window_size) - 1) // (args.window_size // 2 if args.overlap else args.window_size)
-    print(f"   -> Processing window {window_num} / {num_windows}...")
-
     X = data_window.value.tolist()
     
     # Retrieve similar series
@@ -121,14 +118,12 @@ def run_inference_on_window(data_window, T_list, ad_list, ad_str_list, ad_label_
     prompt_res = prompt_template.get_template(normal_data=normal_data_str, data=cur_data_str, data_len=len(data_window), anomaly_datas=anomaly_data_str, data_description=args.data_description)
     
     start_time = time.time()
-    print("      -> Calling LLM for anomaly detection...")
     response, raw_response = get_llm_response(prompt_res, args)
     end_time = time.time()
-    print("      -> LLM response received. Saving results...")
 
-    # Save results
-    result_path = os.path.join(base_dir, 'predict.csv')
-    log_path = os.path.join(base_dir, 'log.csv')
+    # Prepare results
+    infer_result = None
+    log_entry = None
 
     if response:
         is_anomaly = response.get('is_anomaly', False)
@@ -148,13 +143,7 @@ def run_inference_on_window(data_window, T_list, ad_list, ad_str_list, ad_label_
         infer_result['alarm_level'] = response.get('alarm_level', 'no')
         infer_result['anomaly_type'] = response.get('anomaly_type', 'no')
 
-        # Append to predict.csv
-        header = not os.path.exists(result_path)
-        infer_result.to_csv(result_path, mode='a', header=header, index=False)
-
-        # Append to log.csv
-        log_header = not os.path.exists(log_path)
-        log_df = pd.DataFrame([{
+        log_entry = {
             'ground_truth': json.dumps(data_window[data_window['label'] == 1].index.tolist()),
             'predict': json.dumps(anomalies),
             'data': json.dumps(X),
@@ -170,13 +159,16 @@ def run_inference_on_window(data_window, T_list, ad_list, ad_str_list, ad_label_
             'prompt_res': prompt_res,
             'raw_response': raw_response,
             'elapsed_time': end_time - start_time,
-        }])
-        log_df.to_csv(log_path, mode='a', header=log_header, index=False)
+        }
+    
+    return infer_result, log_entry
 
 def process_file(file, run_dir, ad_list, ad_str_list, ad_label_list, args):
     """
-    Loads and processes a single data file for anomaly detection.
+    Loads and processes a single data file for anomaly detection using parallel processing.
     """
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
     file_name = file.split('.')[0]
     base_dir = os.path.join(run_dir, file_name)
     os.makedirs(base_dir, exist_ok=True)
@@ -203,10 +195,41 @@ def process_file(file, run_dir, ad_list, ad_str_list, ad_label_list, args):
     prompt_template = PromptTemplate(prompt_mode=args.prompt_mode)
     increment = args.window_size // 2 if args.overlap else args.window_size
     
+    windows = []
     for i in range(0, len(infer_data), increment):
         data_window = infer_data[i : i + args.window_size]
-        if data_window.empty: continue
-        run_inference_on_window(data_window, T_list, ad_list, ad_str_list, ad_label_list, prompt_template, base_dir, args)
+        if not data_window.empty:
+            windows.append(data_window)
+
+    print(f" -> Processing {len(windows)} windows with {args.max_workers} workers...")
+    
+    result_path = os.path.join(base_dir, 'predict.csv')
+    log_path = os.path.join(base_dir, 'log.csv')
+    
+    # Clear existing files
+    if os.path.exists(result_path): os.remove(result_path)
+    if os.path.exists(log_path): os.remove(log_path)
+
+    with ThreadPoolExecutor(max_workers=args.max_workers) as executor:
+        futures = [
+            executor.submit(run_inference_on_window, window, T_list, ad_list, ad_str_list, ad_label_list, prompt_template, args)
+            for window in windows
+        ]
+        
+        for future in tqdm(as_completed(futures), total=len(windows), desc="Inference Progress"):
+            try:
+                infer_result, log_entry = future.result()
+                
+                if infer_result is not None:
+                    header = not os.path.exists(result_path)
+                    infer_result.to_csv(result_path, mode='a', header=header, index=False)
+                
+                if log_entry is not None:
+                    log_header = not os.path.exists(log_path)
+                    pd.DataFrame([log_entry]).to_csv(log_path, mode='a', header=log_header, index=False)
+                    
+            except Exception as e:
+                print(f"Error processing window: {e}")
 
 def main(args):
     # Use absolute path
