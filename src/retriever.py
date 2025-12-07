@@ -16,7 +16,7 @@ def fast_dtw_distance(series1, series2, dist_div_len=False):
 
 def find_most_similar_series_fast(X, T_list, top_k=1, dist_div_len=False):
     # Check if the list/array of series is empty
-    if len(T_list) == 0:
+    if len(T_list) == 0 or top_k <= 0:
         return [], [], []
         
     heap = []

@@ -57,6 +57,7 @@ def parse_args():
     arg_parser.add_argument('--prompt_extra_cols', nargs='*', default=[], required=False, help="List of extra columns to include in the prompt.")
     arg_parser.add_argument('--data_description', type=str, default="", required=False, help="Description of the data for the prompt.")
     arg_parser.add_argument('--max_workers', type=int, default=5, required=False, help="Number of workers for parallel processing.")
+    arg_parser.add_argument('--max_windows', type=int, default=0, required=False, help="Maximum number of windows to process. 0 means all.")
 
     return arg_parser.parse_args()
 
@@ -200,6 +201,11 @@ def process_file(file, run_dir, ad_list, ad_str_list, ad_label_list, args):
         data_window = infer_data[i : i + args.window_size]
         if not data_window.empty:
             windows.append(data_window)
+
+    # Apply max_windows limit
+    if args.max_windows > 0:
+        print(f" -> Limiting to {args.max_windows} windows (out of {len(windows)}).")
+        windows = windows[:args.max_windows]
 
     print(f" -> Processing {len(windows)} windows with {args.max_workers} workers...")
     
